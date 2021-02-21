@@ -10,10 +10,9 @@ namespace SmallSimpleSerialConsole
     enum DataFormat
     {
         Binary = 1,
-        Hex = 2,
-        Octal = 3,
-        Integer = 4,
-        String = 5
+        Hexadecimal = 2,
+        Integer = 3,
+        String = 4
     }
     class HelperClass
     {
@@ -22,6 +21,24 @@ namespace SmallSimpleSerialConsole
         public static bool IsHexByte(string input)
         {
             return hex.IsMatch(input);
+        }
+
+        public static bool isBinaryByte(string input)
+        {
+            if(input.Length == 8)
+            {
+                 foreach(char c in input)
+                {
+                    if(c != '0' && c != '1')
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            } else
+            {
+                return false;
+            }
         }
     }
 }

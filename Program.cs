@@ -27,6 +27,7 @@ namespace SmallSimpleSerialConsole //The name for this was "CringeRetardSerialCo
                 try
                 {
                     loaded_prf = Profile.Load(profile_path + "default.sscp");
+                    UpdateSpParameters();
                     Console.WriteLine("Profile Loaded: " + loaded_prf.Name + ".sscp");
                 } catch(Exception e)
                 {
@@ -40,10 +41,6 @@ namespace SmallSimpleSerialConsole //The name for this was "CringeRetardSerialCo
 
 
             Console.Title = "SSSC";
-            sp.PortName = loaded_prf.Port_Name;
-            sp.BaudRate = loaded_prf.BaudRate;
-            sp.Parity = loaded_prf.Parity;
-            sp.DataBits = loaded_prf.BitNumber;
             sp.DataReceived += DataRecievedHandler;
 
 
@@ -66,7 +63,7 @@ namespace SmallSimpleSerialConsole //The name for this was "CringeRetardSerialCo
                         }
                         Console.WriteLine("Exiting program, bye!");
                         Environment.Exit(0);
-                        break;
+                        continue;
 
                     case "close":
                         System.Console.WriteLine("Closing port...");
@@ -95,11 +92,12 @@ namespace SmallSimpleSerialConsole //The name for this was "CringeRetardSerialCo
                             Console.WriteLine("Invalid parameters");
                         } else
                         {
+                            loaded_prf.Name = input[1];
                             Profile.Save(loaded_prf, AppDomain.CurrentDomain.BaseDirectory + "\\profiles\\" + input[1] + ".sscp");
                             Console.WriteLine("Current settings saved as {0}", input[1] + ".sscp");
                             continue;
                         }
-                        break;
+                        continue;
 
                     case "load":
                         if (input.Length != 2)
@@ -112,7 +110,35 @@ namespace SmallSimpleSerialConsole //The name for this was "CringeRetardSerialCo
                             if (File.Exists(filepath))
                             {
                                 Profile.Load(filepath);
+                                UpdateSpParameters();
                             } else
+                            {
+                                Console.WriteLine("Invalid profile name");
+                            }
+                            continue;
+                        }
+                        continue;
+
+                    case "delete":
+                        if (input.Length != 2)
+                        {
+                            Console.WriteLine("Invalid parameters");
+                        }
+                        else
+                        {
+                            string filepath = profile_path + input[1] + ".sscp";
+                            if (File.Exists(filepath))
+                            {
+                                if (input[1] != loaded_prf.Name)
+                                {
+                                    File.Delete(filepath);
+                                    Console.WriteLine("Deleted Profile: {0}", input[1]);
+                                } else
+                                {
+                                    Console.WriteLine("Error: Cannot delete currently loaded profile");
+                                }
+                            }
+                            else
                             {
                                 Console.WriteLine("Invalid profile name");
                             }
@@ -155,7 +181,23 @@ namespace SmallSimpleSerialConsole //The name for this was "CringeRetardSerialCo
                                 Console.WriteLine("Failed to execute: {0}", err == -1 ? "Script file missing or corrupted" : "Error at line " + err); //Oh yeah I do love the conditional operator, how could you tell?
                             }
                         }
-                         
+                        continue;
+
+                    case "mode":
+                        Dictionary<string, DataFormat> formatname = new Dictionary<string, DataFormat> { { "hex", DataFormat.Hexadecimal }, { "bin", DataFormat.Binary }, { "int", DataFormat.Integer }, { "str", DataFormat.String }};
+                        if (input.Length == 2 && formatname.ContainsKey(input[1])) {
+                            loaded_prf.Format = formatname[input[1]];
+                            if (loaded_prf.Name == "default") { loaded_prf.Name = "New Profile"; }
+                            Console.WriteLine("Mode set to {0}", Enum.GetName(typeof(DataFormat), loaded_prf.Format));
+                            
+                        } else
+                        {
+                            Console.WriteLine("Invalid parameters");
+                        }
+                        continue;
+
+                    case "profile":
+                        loaded_prf.printValues();
                         continue;
                 }
 
@@ -187,11 +229,18 @@ namespace SmallSimpleSerialConsole //The name for this was "CringeRetardSerialCo
             {
                 switch (DataType)
                 {
-                    case DataFormat.Hex:
+                    case DataFormat.Hexadecimal:
                         if (!HelperClass.IsHexByte(a))
                             {
                             return false;
                             }
+                        break;
+
+                    case DataFormat.Binary:
+                        if(!HelperClass.isBinaryByte(a))
+                        {
+                            return false;
+                        }
                         break;
                 }
             }
@@ -201,11 +250,13 @@ namespace SmallSimpleSerialConsole //The name for this was "CringeRetardSerialCo
         static void SendData(string[] hexbytes, int length, DataFormat DataType)
         {
             switch(DataType) {
-                case DataFormat.Hex:
+
+                case DataFormat.Binary:
+                case DataFormat.Hexadecimal:
                     byte[] send = new byte[length];
                     for (int i = 0; i < length; i++)
                     {
-                        send[i] = Convert.ToByte(hexbytes[i], 16);
+                        send[i] = Convert.ToByte(hexbytes[i], DataType == DataFormat.Hexadecimal ? 16 : 2);
                     }
                     try
                     {
@@ -215,6 +266,7 @@ namespace SmallSimpleSerialConsole //The name for this was "CringeRetardSerialCo
                         Console.WriteLine("Error sending data: {0}", e.Message);
                     }
                     break;
+
             }
         }
 
@@ -226,12 +278,15 @@ namespace SmallSimpleSerialConsole //The name for this was "CringeRetardSerialCo
                 sel_port.addOption(port);
             }
 
-            sp.PortName = sel_port.DisplayList().text;
+            loaded_prf.Port_Name = sel_port.DisplayList().text;
 
             SelectionList sel_baud = new SelectionList(rates, "Select a baud rate");
 
-            sp.BaudRate = int.Parse(sel_baud.DisplayList().text);
+            loaded_prf.BaudRate = int.Parse(sel_baud.DisplayList().text);
             Console.WriteLine("Opening serial port...");
+
+            if (loaded_prf.Name == "default") { loaded_prf.Name = "New Profile"; }
+            UpdateSpParameters();
 
             try
             {
@@ -244,6 +299,14 @@ namespace SmallSimpleSerialConsole //The name for this was "CringeRetardSerialCo
                 Console.WriteLine("Error opening port: {0}", e.Message);
                 Console.ReadLine();
             }
+        }
+
+        static void UpdateSpParameters()
+        {
+            sp.PortName = loaded_prf.Port_Name;
+            sp.BaudRate = loaded_prf.BaudRate;
+            sp.Parity = loaded_prf.Parity;
+            sp.DataBits = loaded_prf.BitNumber;
         }
 
     }

@@ -18,11 +18,10 @@ namespace SmallSimpleSerialConsole
         public int BaudRate;
         public Parity Parity;
         public int BitNumber;
-        public bool IsDefault;
         public DataFormat Format;
         //List<List<string>> scripts;
 
-        public Profile(string name, string portname = "COM1", int baud_rate = 9600, Parity parity = Parity.None, int bitNumber = 8, DataFormat format = DataFormat.Hex)
+        public Profile(string name, string portname = "COM1", int baud_rate = 9600, Parity parity = Parity.None, int bitNumber = 8, DataFormat format = DataFormat.Hexadecimal)
         {
             this.Name = name;
             this.BaudRate = baud_rate;
@@ -65,6 +64,11 @@ namespace SmallSimpleSerialConsole
             {
                 Console.WriteLine("I/O error while saving profile: {0}", e.Message);
             } 
+        }
+
+        public void printValues()
+        {
+            Console.WriteLine("Name: {0}\nBaud Rate: {1}\nParity: {2}\nBit Number: {3}\nData Format: {4}\nPort Name: {5}", this.Name, this.BaudRate, Enum.GetName(typeof(Parity), this.Parity), this.BitNumber, Enum.GetName(typeof(DataFormat), this.Format), this.Port_Name);
         }
     }
 }
