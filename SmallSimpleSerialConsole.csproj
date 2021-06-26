@@ -47,7 +47,6 @@
     <Compile Include="Profile.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Script.cs" />
     <Compile Include="SelectionList.cs" />
   </ItemGroup>
   <ItemGroup>

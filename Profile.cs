@@ -66,9 +66,15 @@ namespace SmallSimpleSerialConsole
             } 
         }
 
-        public void printValues()
+        public override string ToString()
         {
-            Console.WriteLine("Name: {0}\nBaud Rate: {1}\nParity: {2}\nBit Number: {3}\nData Format: {4}\nPort Name: {5}", this.Name, this.BaudRate, Enum.GetName(typeof(Parity), this.Parity), this.BitNumber, Enum.GetName(typeof(DataFormat), this.Format), this.Port_Name);
+            return String.Format("Name: {0}\n" +
+                "Baud Rate: {1}\n" +
+                "Parity: {2}\n" +
+                "Bit Number: {3}\n" +
+                "Data Format: {4}\n" +
+                "Port Name: {5}",
+                this.Name, this.BaudRate, Enum.GetName(typeof(Parity), this.Parity), this.BitNumber, Enum.GetName(typeof(DataFormat), this.Format), this.Port_Name);
         }
     }
 }

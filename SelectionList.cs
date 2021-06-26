@@ -1,4 +1,6 @@
-﻿using System;
+﻿#pragma warning disable IDE1006
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,7 +9,7 @@ using System.Threading.Tasks;
 namespace SmallSimpleSerialConsole
 {
 
-    public struct SLOption
+    struct SLOption
     {
         public string text;
         public bool alignRight;
@@ -18,27 +20,19 @@ namespace SmallSimpleSerialConsole
             this.alignRight = alignRight;
             this.index = index;
         }
-        public override string ToString()
-        {
-            return this.text;
-        }
+        public override string ToString() => text;
     };
     class SelectionList
     {
-        private string title = "";
+        public string title { get; }
         private List<SLOption> options = new List<SLOption>();
 
-        public SelectionList(string title = "")
-        {
-            this.title = title;
-        }
+        public SelectionList(string title = "") => this.title = title;
 
         public SelectionList(string[] items, string title = "")
         {
             foreach(string item in items)
-            {
-                this.addOption(item);
-            }
+                addOption(item);
             this.title = title;
         }
 
@@ -75,11 +69,9 @@ namespace SmallSimpleSerialConsole
                 }
             }
         }
-        public void addOption(string text, bool alignRight = false, int index = -1)
-        {
-            index = index == -1 ? options.Count : index;
-            options.Add(new SLOption(text, alignRight, index));
-        }
+
+        public void addOption(SLOption o) => options.Add(o);
+        public void addOption(string text, bool alignRight = false, int index = -1) => options.Add(new SLOption(text, alignRight, index == -1 ? options.Count : index));
 
         private void drawOption(SLOption opt, bool check)
         {
